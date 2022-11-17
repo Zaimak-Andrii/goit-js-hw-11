@@ -18,6 +18,8 @@ const page = new Page();
 refs.searchForm.addEventListener('submit', searchHandler);
 refs.moreBtn.addEventListener('click', loadMoreHandler);
 
+hideLoadMoreButton();
+
 function searchHandler(evt) {
   evt.preventDefault();
 
@@ -34,18 +36,7 @@ function searchHandler(evt) {
   clearGallery();
   page
     .search(query)
-    .then(({ hits, totalHits }) => {
-      if (!hits.length) {
-        Notify.failure(
-          'Sorry, there are no images matching your search query. Please try again.'
-        );
-
-        return;
-      }
-
-      Notify.info(`Hooray! We found ${totalHits} images.`);
-      addCardsToGallery(hits);
-    })
+    .then(searchResponse)
     .catch(error => {
       Notify.failure(error.message);
     });
@@ -53,19 +44,20 @@ function searchHandler(evt) {
   form.reset();
 }
 
-function loadMoreHandler() {
-  page
-    .loadMore()
-    .then(({ hits }) => {
-      addCardsToGallery(hits);
-    })
-    .catch(error => {
-      Notify.failure(error.message);
-    });
+async function loadMoreHandler() {
+  try {
+    const data = await page.loadMore();
+
+    searchResponse(data);
+  } catch (error) {
+    Notify.failure(error.message);
+  }
 }
 
 function clearGallery() {
   refs.gallery.innerHTML = '';
+  simple.refresh();
+  hideLoadMoreButton();
 }
 
 function addCardsToGallery(list) {
@@ -115,4 +107,53 @@ function createCard(card) {
       </a>
     </article>
   `;
+}
+
+function scrollToDown() {
+  const { height: cardHeight } = document
+    .querySelector('.gallery')
+    .firstElementChild.getBoundingClientRect();
+
+  window.scrollBy({
+    top: cardHeight * 2,
+    behavior: 'smooth',
+  });
+}
+
+function showLoadMoreButton() {
+  refs.moreBtn.classList.remove('hidden');
+}
+
+function hideLoadMoreButton() {
+  refs.moreBtn.classList.add('hidden');
+}
+
+function searchResponse({ page, per_page, hits, totalHits }) {
+  if (!hits.length) {
+    Notify.failure(
+      'Sorry, there are no images matching your search query. Please try again.'
+    );
+
+    return;
+  }
+
+  addCardsToGallery(hits);
+  checkLoadMoreButton({ page, per_page, totalHits });
+
+  if (page === 1) {
+    Notify.info(`Hooray! We found ${totalHits} images.`);
+  } else {
+    scrollToDown();
+  }
+}
+
+function checkLoadMoreButton({ page, per_page, totalHits }) {
+  if (page * per_page >= totalHits) {
+    Notify.warning(
+      "We're sorry, but you've reached the end of search results."
+    );
+    hideLoadMoreButton();
+  } else {
+    showLoadMoreButton();
+  }
 }
