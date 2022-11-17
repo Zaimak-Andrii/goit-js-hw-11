@@ -1,8 +1,7 @@
 import { Notify } from 'notiflix';
 import SimpleLightBox from 'simplelightbox';
-import 'simplelightbox/dist/simple-lightbox.min.css';
-import { fetchQuery } from './js/fetchSearch';
 import { Page } from './js/page';
+import 'simplelightbox/dist/simple-lightbox.min.css';
 
 const refs = {
   searchForm: document.querySelector('.search'),

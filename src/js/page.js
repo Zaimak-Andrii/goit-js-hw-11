@@ -8,7 +8,7 @@ export class Page {
     this.#query = query;
     this.#page = 1;
 
-    return fetchQuery(query, this.#page);
+    return fetchQuery(query);
   }
 
   loadMore() {

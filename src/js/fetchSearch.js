@@ -13,7 +13,7 @@ const instance = axios.create({
   },
 });
 
-export async function fetchQuery(query, page) {
+export async function fetchQuery(query, page = 1) {
   const options = {
     params: {
       q: query,
