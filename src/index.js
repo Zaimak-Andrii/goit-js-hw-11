@@ -5,6 +5,7 @@ import 'simplelightbox/dist/simple-lightbox.min.css';
 
 const refs = {
   searchForm: document.querySelector('.search'),
+  searchButton: document.querySelector('.search__button'),
   query: document.querySelector('.search__query'),
   gallery: document.querySelector('.gallery__list'),
   moreBtn: document.querySelector('.load-more'),
@@ -19,7 +20,7 @@ refs.moreBtn.addEventListener('click', loadMoreHandler);
 
 hideLoadMoreButton();
 
-function searchHandler(evt) {
+async function searchHandler(evt) {
   evt.preventDefault();
 
   const form = evt.currentTarget;
@@ -33,23 +34,30 @@ function searchHandler(evt) {
   }
 
   clearGallery();
-  page
-    .search(query)
-    .then(searchResponse)
-    .catch(error => {
-      Notify.failure(error.message);
-    });
+  try {
+    setSearchButtonDisabled(true);
+    const data = await page.search(query);
+
+    searchResponse(data);
+  } catch (error) {
+    Notify.failure(error.message);
+  } finally {
+    setSearchButtonDisabled(false);
+  }
 
   form.reset();
 }
 
 async function loadMoreHandler() {
   try {
+    setLoadModeDisabled(true);
     const data = await page.loadMore();
 
     searchResponse(data);
   } catch (error) {
     Notify.failure(error.message);
+  } finally {
+    setLoadModeDisabled(false);
   }
 }
 
@@ -155,4 +163,12 @@ function checkLoadMoreButton({ page, per_page, totalHits }) {
   } else {
     showLoadMoreButton();
   }
+}
+
+function setLoadModeDisabled(value) {
+  refs.moreBtn.disabled = value;
+}
+
+function setSearchButtonDisabled(value) {
+  refs.searchButton.disabled = value;
 }
