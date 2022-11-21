@@ -20,7 +20,7 @@ const throttleScrollHandler = throttle(updateScroll, 250);
 refs.searchForm.addEventListener('submit', searchHandler);
 hideLoader();
 
-async function searchHandler(evt) {
+function searchHandler(evt) {
   evt.preventDefault();
 
   const form = evt.currentTarget;
@@ -34,7 +34,11 @@ async function searchHandler(evt) {
   }
 
   clearGallery();
+  callSearch(query);
+  form.reset();
+}
 
+async function callSearch(query) {
   try {
     showLoader();
     setSearchButtonDisabled(true);
@@ -47,11 +51,9 @@ async function searchHandler(evt) {
     hideLoader();
     setSearchButtonDisabled(false);
   }
-
-  form.reset();
 }
 
-async function loadMore() {
+async function callLoadMore() {
   try {
     showLoader();
     const data = await page.loadMore();
@@ -175,5 +177,5 @@ function updateScroll() {
   if (!endOfPage) return;
 
   removeScrollEvent();
-  loadMore();
+  callLoadMore();
 }
