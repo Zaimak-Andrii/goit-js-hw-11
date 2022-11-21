@@ -155,14 +155,14 @@ function removeScrollEvent() {
 }
 
 function updateScroll() {
-  console.log('Scroll');
   const containerOffset = 300;
   const endOfPage =
     window.innerHeight + window.pageYOffset + containerOffset >=
     document.body.offsetHeight;
 
-  if (endOfPage) {
-    removeScrollEvent();
-    loadMore();
-  }
+  if (!endOfPage) return;
+
+  console.log('Scroll');
+  removeScrollEvent();
+  loadMore();
 }
