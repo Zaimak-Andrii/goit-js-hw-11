@@ -9,6 +9,7 @@ const refs = {
   searchButton: document.querySelector('.search__button'),
   query: document.querySelector('.search__query'),
   gallery: document.querySelector('.gallery__list'),
+  loader: document.querySelector('.loader'),
 };
 const simple = new SimpleLightBox('.gallery__list .card__link', {
   captionDelay: 500,
@@ -17,6 +18,7 @@ const page = new Page();
 const throttleScrollHandler = throttle(updateScroll, 250);
 
 refs.searchForm.addEventListener('submit', searchHandler);
+hideLoader();
 
 async function searchHandler(evt) {
   evt.preventDefault();
@@ -34,6 +36,7 @@ async function searchHandler(evt) {
   clearGallery();
 
   try {
+    showLoader();
     setSearchButtonDisabled(true);
     const data = await page.search(query);
 
@@ -41,6 +44,7 @@ async function searchHandler(evt) {
   } catch (error) {
     Notify.failure(error.message);
   } finally {
+    hideLoader();
     setSearchButtonDisabled(false);
   }
 
@@ -49,14 +53,14 @@ async function searchHandler(evt) {
 
 async function loadMore() {
   try {
-    //setLoadModeDisabled(true);
+    showLoader();
     const data = await page.loadMore();
 
     searchResponse(data);
   } catch (error) {
     Notify.failure(error.message);
   } finally {
-    //setLoadModeDisabled(false);
+    hideLoader();
   }
 }
 
@@ -146,6 +150,14 @@ function setSearchButtonDisabled(value) {
   refs.searchButton.disabled = value;
 }
 
+function showLoader() {
+  refs.loader.classList.remove('hidden');
+}
+
+function hideLoader() {
+  refs.loader.classList.add('hidden');
+}
+
 function addScrollEvent() {
   document.addEventListener('scroll', throttleScrollHandler);
 }
@@ -162,7 +174,6 @@ function updateScroll() {
 
   if (!endOfPage) return;
 
-  console.log('Scroll');
   removeScrollEvent();
   loadMore();
 }
