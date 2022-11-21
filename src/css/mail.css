@@ -1,6 +1,7 @@
 @import '../../node_modules/modern-normalize/modern-normalize.css';
 
 :root {
+  --primary-color: lightblue;
   --header-height: 60px;
 }
 
@@ -38,7 +39,7 @@ a {
   width: 100%;
   height: var(--header-height);
 
-  background-color: lightblue;
+  background-color: var(--primary-color);
 }
 
 .search {
@@ -138,16 +139,101 @@ a {
   font-size: 12px;
 }
 
-.load-more {
-  cursor: pointer;
-
-  margin-top: 30px;
-  padding: 10px 30px;
-
-  border: none;
-  border-radius: 20px;
+/**
+ * ==============================================
+ * Dot Falling
+ * ==============================================
+ */
+.loader {
+  margin: 30px auto 0px;
 }
 
-.load-more.hidden {
+.loader.hidden {
   display: none;
+}
+
+.dot-falling {
+  --offset: 9999px;
+  --size: 10px;
+
+  position: relative;
+  left: calc(var(--offset) * -1);
+  width: var(--size);
+  height: var(--size);
+  border-radius: 5px;
+  background-color: var(--primary-color);
+  color: var(--primary-color);
+  box-shadow: 9999px 0 0 0 var(--primary-color);
+  animation: dotFalling 1s infinite linear;
+  animation-delay: 0.1s;
+}
+
+.dot-falling::before,
+.dot-falling::after {
+  content: '';
+  display: inline-block;
+  position: absolute;
+  top: 0;
+}
+
+.dot-falling::before {
+  width: var(--size);
+  height: var(--size);
+  border-radius: 5px;
+  background-color: var(--primary-color);
+  color: var(--primary-color);
+  animation: dotFallingBefore 1s infinite linear;
+  animation-delay: 0s;
+}
+
+.dot-falling::after {
+  width: var(--size);
+  height: var(--size);
+  border-radius: 5px;
+  background-color: var(--primary-color);
+  color: var(--primary-color);
+  animation: dotFallingAfter 1s infinite linear;
+  animation-delay: 0.2s;
+}
+
+@keyframes dotFalling {
+  0% {
+    box-shadow: var(--offset) -15px 0 0 rgba(152, 128, 255, 0);
+  }
+  25%,
+  50%,
+  75% {
+    box-shadow: var(--offset) 0 0 0 var(--primary-color);
+  }
+  100% {
+    box-shadow: var(--offset) 15px 0 0 rgba(152, 128, 255, 0);
+  }
+}
+
+@keyframes dotFallingBefore {
+  0% {
+    box-shadow: calc(var(--offset) - 20px) -15px 0 0 rgba(152, 128, 255, 0);
+  }
+  25%,
+  50%,
+  75% {
+    box-shadow: calc(var(--offset) - 20px) 0 0 0 var(--primary-color);
+  }
+  100% {
+    box-shadow: calc(var(--offset) - 20px) 15px 0 0 rgba(152, 128, 255, 0);
+  }
+}
+
+@keyframes dotFallingAfter {
+  0% {
+    box-shadow: calc(var(--offset) + 10px) -15px 0 0 rgba(152, 128, 255, 0);
+  }
+  25%,
+  50%,
+  75% {
+    box-shadow: calc(var(--offset) + 10px) 0 0 0 var(--primary-color);
+  }
+  100% {
+    box-shadow: calc(var(--offset) + 10px) 15px 0 0 rgba(152, 128, 255, 0);
+  }
 }

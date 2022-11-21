@@ -1,5 +1,6 @@
 import { Notify } from 'notiflix';
 import SimpleLightBox from 'simplelightbox';
+import throttle from 'lodash.throttle';
 import { Page } from './js/page';
 import 'simplelightbox/dist/simple-lightbox.min.css';
 
@@ -8,19 +9,18 @@ const refs = {
   searchButton: document.querySelector('.search__button'),
   query: document.querySelector('.search__query'),
   gallery: document.querySelector('.gallery__list'),
-  moreBtn: document.querySelector('.load-more'),
+  loader: document.querySelector('.loader'),
 };
 const simple = new SimpleLightBox('.gallery__list .card__link', {
   captionDelay: 500,
 });
 const page = new Page();
+const throttleScrollHandler = throttle(updateScroll, 250);
 
 refs.searchForm.addEventListener('submit', searchHandler);
-refs.moreBtn.addEventListener('click', loadMoreHandler);
+hideLoader();
 
-hideLoadMoreButton();
-
-async function searchHandler(evt) {
+function searchHandler(evt) {
   evt.preventDefault();
 
   const form = evt.currentTarget;
@@ -34,7 +34,13 @@ async function searchHandler(evt) {
   }
 
   clearGallery();
+  callSearch(query);
+  form.reset();
+}
+
+async function callSearch(query) {
   try {
+    showLoader();
     setSearchButtonDisabled(true);
     const data = await page.search(query);
 
@@ -42,29 +48,27 @@ async function searchHandler(evt) {
   } catch (error) {
     Notify.failure(error.message);
   } finally {
+    hideLoader();
     setSearchButtonDisabled(false);
   }
-
-  form.reset();
 }
 
-async function loadMoreHandler() {
+async function callLoadMore() {
   try {
-    setLoadModeDisabled(true);
+    showLoader();
     const data = await page.loadMore();
 
     searchResponse(data);
   } catch (error) {
     Notify.failure(error.message);
   } finally {
-    setLoadModeDisabled(false);
+    hideLoader();
   }
 }
 
 function clearGallery() {
   refs.gallery.innerHTML = '';
   simple.refresh();
-  hideLoadMoreButton();
 }
 
 function addCardsToGallery(list) {
@@ -87,7 +91,7 @@ function createCard(card) {
 
   return `
     <article class="card">
-      <a class="card__link"
+    <a class="card__link"
         href="${largeImageURL}">
         <div class="card__thumb">
           <img class="card__image" src="${webformatURL}" alt="${tags}"
@@ -116,25 +120,6 @@ function createCard(card) {
   `;
 }
 
-function scrollToDown() {
-  const { height: cardHeight } = document
-    .querySelector('.gallery')
-    .firstElementChild.getBoundingClientRect();
-
-  window.scrollBy({
-    top: cardHeight * 2,
-    behavior: 'smooth',
-  });
-}
-
-function showLoadMoreButton() {
-  refs.moreBtn.classList.remove('hidden');
-}
-
-function hideLoadMoreButton() {
-  refs.moreBtn.classList.add('hidden');
-}
-
 function searchResponse({ page, per_page, hits, totalHits }) {
   if (!hits.length) {
     Notify.failure(
@@ -145,30 +130,52 @@ function searchResponse({ page, per_page, hits, totalHits }) {
   }
 
   addCardsToGallery(hits);
-  checkLoadMoreButton({ page, per_page, totalHits });
+  checkLoadMore({ page, per_page, totalHits });
 
   if (page === 1) {
     Notify.info(`Hooray! We found ${totalHits} images.`);
-  } else {
-    scrollToDown();
   }
 }
 
-function checkLoadMoreButton({ page, per_page, totalHits }) {
+function checkLoadMore({ page, per_page, totalHits }) {
   if (page * per_page >= totalHits) {
     Notify.warning(
       "We're sorry, but you've reached the end of search results."
     );
-    hideLoadMoreButton();
+    removeScrollEvent();
   } else {
-    showLoadMoreButton();
+    addScrollEvent();
   }
-}
-
-function setLoadModeDisabled(value) {
-  refs.moreBtn.disabled = value;
 }
 
 function setSearchButtonDisabled(value) {
   refs.searchButton.disabled = value;
+}
+
+function showLoader() {
+  refs.loader.classList.remove('hidden');
+}
+
+function hideLoader() {
+  refs.loader.classList.add('hidden');
+}
+
+function addScrollEvent() {
+  document.addEventListener('scroll', throttleScrollHandler);
+}
+
+function removeScrollEvent() {
+  document.removeEventListener('scroll', throttleScrollHandler);
+}
+
+function updateScroll() {
+  const containerOffset = 300;
+  const endOfPage =
+    window.innerHeight + window.pageYOffset + containerOffset >=
+    document.body.offsetHeight;
+
+  if (!endOfPage) return;
+
+  removeScrollEvent();
+  callLoadMore();
 }
