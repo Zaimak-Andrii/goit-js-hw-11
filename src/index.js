@@ -95,7 +95,7 @@ function createCard(card) {
         href="${largeImageURL}">
         <div class="card__thumb">
           <img class="card__image" src="${webformatURL}" alt="${tags}"
-            title="${tags}" loading="lazy">
+            title="${tags}" loading="lazy" height="200">
         </div>
         <ul class="card__info">
           <li class="card__info-item">
